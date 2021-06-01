@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/justinas/alice"
 )
 
 type city struct {
@@ -56,6 +58,12 @@ func mainLogic(w http.ResponseWriter, r *http.Request){
 func main(){
 	// http.HandleFunc("/city", mainLogic)
 	mainLogicHandler := http.HandlerFunc(mainLogic)
-	http.Handle("/city", filterContentType(setServerTimeCookie(mainLogicHandler)))
+	// 1. Single middleware
+	// http.Handle("/city", filterContentType(setServerTimeCookie(mainLogicHandler)))
+	
+	// 2. Multiple middleware
+	chain := alice.New(filterContentType, setServerTimeCookie).Then(mainLogicHandler)
+	http.Handle("/city", chain)
+
 	http.ListenAndServe(":8000", nil)
 }
